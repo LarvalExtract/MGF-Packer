@@ -16,4 +16,4 @@ MGFPacker.exe ma1 C:\folder\to\package
 MGFPacker.exe ma2 C:\folder\to\package -n MyFile
 ```
 
-The MGF file will be stored inside the folder you specified to package.
+The MGF file will be stored alongside the folder you specified to package e.g. C:\folder\to\MyFile.mgf
