@@ -36,7 +36,7 @@ namespace MGF_Packer
                         throw new Exception("Source folder path does not exist.");
                     }
 
-                    string destination = Path.Combine(o.SourceFolder, Path.GetFileNameWithoutExtension(o.Name ?? Path.GetFileNameWithoutExtension(o.SourceFolder)) + ".mgf");
+                    string destination = Path.Combine(Path.GetDirectoryName(o.SourceFolder), Path.GetFileNameWithoutExtension(o.Name ?? Path.GetFileNameWithoutExtension(o.SourceFolder)) + ".mgf");
 
                     Run(o.SourceFolder, destination, o.Game == "ma1" ? MGF.Version.MechAssault : MGF.Version.MechAssault2LW);
                 });

@@ -13,7 +13,7 @@ namespace MGF
 
         private List<MGF.FileRecord> FileRecords = new();
         private List<MGF.DirectoryEntry> DirectoryEntries = new();
-        private MemoryStream DirectoryNameStringBuffer;
+        private MemoryStream DirectoryNameStringBuffer = new();
 
         private Dictionary<uint, uint> ExistingFileOffsets = new();
 
@@ -26,7 +26,6 @@ namespace MGF
             SourceFolder = sourceFolder;
             GameVersion = typeof(FileRecordType) == typeof(FileRecordMA1) ? MGF.Version.MechAssault : MGF.Version.MechAssault2LW;
 
-            DirectoryNameStringBuffer = new MemoryStream();
             DirectoryNameStringBuffer.Write(Encoding.ASCII.GetBytes("MGI\0\\\0\0\0"), 0, 8);
 
             Console.WriteLine("Collating directories...");
@@ -132,9 +131,12 @@ namespace MGF
                 var mgfHeader = new MGF.Header(GameVersion, FileRecords.Count, DirectoryEntries.Count, (int)DirectoryNameStringBuffer.Length);
                 mgfHeader.Serialize(binaryWriter);
 
+                // length of header + file records + directory entry + strings
+                // needs to be added to every file record's offset before serialising file records
+                uint offset = (uint)(mgfHeader.FileRecordChunkOffset + mgfHeader.FileRecordChunkLength + mgfHeader.DirectoryEntryChunkLength + mgfHeader.StringChunkLength);
+
                 foreach (var fileRecord in FileRecords)
                 {
-                    uint offset = (uint)(mgfHeader.FileRecordChunkOffset + mgfHeader.FileRecordChunkLength + mgfHeader.DirectoryEntryChunkLength + mgfHeader.StringChunkLength);
                     fileRecord.FileOffset += offset;
                     fileRecord.Serialize(binaryWriter);
                 }
@@ -179,6 +181,7 @@ namespace MGF
                     }
                 }
 
+                // pad the MGF file size to the nearest page size
                 int totalBytesWritten = (int)binaryWriter.BaseStream.Length;
                 int remainder = totalBytesWritten % mgfHeader.PageSize;
                 for (int bytesRemaining = remainder == 0 ? 0 : mgfHeader.PageSize - remainder; bytesRemaining > 0; bytesRemaining--)
